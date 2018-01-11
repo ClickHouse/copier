@@ -2,7 +2,6 @@
 <yandex>
     <profiles>
         <default>
-            <experimental_allow_extended_storage_definition_syntax>1</experimental_allow_extended_storage_definition_syntax>
             <log_queries>1</log_queries>
 
             <!-- Remove this setting after superfluous deduplication after DROP PARTITION is fixed -->

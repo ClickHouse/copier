@@ -1,5 +1,6 @@
 #include "ClusterCopier.h"
-#include "StatusFile.h"
+
+#include <chrono>
 #include <boost/algorithm/string.hpp>
 #include <Poco/Util/XMLConfiguration.h>
 #include <Poco/Logger.h>
@@ -10,7 +11,10 @@
 #include <Poco/UUIDGenerator.h>
 #include <Poco/File.h>
 #include <Poco/Process.h>
-#include <chrono>
+#include <Poco/FileChannel.h>
+#include <Poco/SplitterChannel.h>
+#include <Poco/Util/HelpFormatter.h>
+#include <Poco/Util/ServerApplication.h>
 
 #include <Common/Exception.h>
 #include <Common/ZooKeeper/ZooKeeper.h>
@@ -26,7 +30,6 @@
 #include <Interpreters/InterpreterCreateQuery.h>
 
 #include <common/logger_useful.h>
-#include <common/ApplicationServerExt.h>
 #include <common/ThreadPool.h>
 #include <Common/typeid_cast.h>
 #include <Common/ClickHouseRevision.h>
@@ -34,7 +37,6 @@
 #include <Columns/ColumnString.h>
 #include <Columns/ColumnsNumber.h>
 #include <Storages/StorageDistributed.h>
-#include <Parsers/ASTCheckQuery.h>
 #include <Parsers/ParserCreateQuery.h>
 #include <Parsers/parseQuery.h>
 #include <Parsers/ParserQuery.h>
@@ -54,9 +56,8 @@
 #include <Functions/registerFunctions.h>
 #include <TableFunctions/registerTableFunctions.h>
 #include <AggregateFunctions/registerAggregateFunctions.h>
-#include <Poco/FileChannel.h>
-#include <Poco/SplitterChannel.h>
-#include <Poco/Util/HelpFormatter.h>
+#include <Server/StatusFile.h>
+#include <Storages/registerStorages.h>
 
 
 namespace DB
@@ -840,7 +841,7 @@ protected:
             zkutil::Stat stat;
             zookeeper->get(getWorkersPath(), &stat);
 
-            if (stat.numChildren >= task_cluster->max_workers)
+            if (static_cast<size_t>(stat.numChildren) >= task_cluster->max_workers)
             {
                 LOG_DEBUG(log, "Too many workers (" << stat.numChildren << ", maximum " << task_cluster->max_workers << ")"
                     << ". Postpone processing " << task_description);
@@ -1100,8 +1101,8 @@ protected:
             {
                 Context local_context = context;
                 // Use pull (i.e. readonly) settings, but fetch data from destination servers
-                context.getSettingsRef() = task_cluster->settings_pull;
-                context.getSettingsRef().skip_unavailable_shards = true;
+                local_context.getSettingsRef() = task_cluster->settings_pull;
+                local_context.getSettingsRef().skip_unavailable_shards = true;
 
                 InterpreterSelectQuery interperter(query_select_ast, local_context);
                 BlockIO io = interperter.execute();
@@ -1310,7 +1311,7 @@ protected:
         String query = "SHOW CREATE TABLE " + getDatabaseDotTable(table);
         Block block = getBlockWithAllStreamData(std::make_shared<RemoteBlockInputStream>(connection, query, context, settings));
 
-        return typeid_cast<ColumnString &>(*block.safeGetByPosition(0).column).getDataAt(0).toString();
+        return typeid_cast<const ColumnString &>(*block.safeGetByPosition(0).column).getDataAt(0).toString();
     }
 
     Strings getRemotePartitions(const DatabaseAndTableName & table, Connection & connection, const Settings * settings = nullptr)
@@ -1328,7 +1329,7 @@ protected:
         Strings res;
         if (block)
         {
-            ColumnString & partition_col = typeid_cast<ColumnString &>(*block.getByName("partition").column);
+            auto & partition_col = typeid_cast<const ColumnString &>(*block.getByName("partition").column);
             for (size_t i = 0; i < partition_col.size(); ++i)
                 res.push_back(partition_col.getDataAt(i).toString());
         }
@@ -1501,7 +1502,7 @@ public:
             throw Poco::OpenFileException("Cannot attach stderr to " + stderr_path);
     }
 
-    void handleHelp(const std::string & name, const std::string & value)
+    void handleHelp(const std::string &, const std::string &)
     {
         Poco::Util::HelpFormatter helpFormatter(options());
         helpFormatter.setCommand(commandName());
@@ -1558,7 +1559,7 @@ public:
         Poco::Logger::root().setLevel(log_level);
     }
 
-    int main(const std::vector<std::string> & args) override
+    int main(const std::vector<std::string> &) override
     {
         if (is_help)
             return 0;
@@ -1601,6 +1602,7 @@ public:
         registerFunctions();
         registerAggregateFunctions();
         registerTableFunctions();
+        registerStorages();
 
         static const std::string default_database = "_local";
         context->addDatabase(default_database, std::make_shared<DatabaseMemory>(default_database));
