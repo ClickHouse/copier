@@ -1,3 +1,8 @@
+---
+toc_priority: 59
+toc_title: clickhouse-copier
+---
+
 # clickhouse-copier {#clickhouse-copier}
 
 Copies data from the tables in one cluster to tables in another (or the same) cluster.
