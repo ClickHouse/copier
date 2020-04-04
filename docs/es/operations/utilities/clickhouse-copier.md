@@ -1,46 +1,49 @@
 ---
 machine_translated: true
+machine_translated_rev: 3e185d24c9fe772c7cf03d5475247fb829a21dfa
+toc_priority: 59
+toc_title: "M\xE9todo de codificaci\xF3n de datos:"
 ---
 
-# clickhouse-copieur {#clickhouse-copier}
+# Método de codificación de datos: {#clickhouse-copier}
 
-Copie les données des tables d'un cluster vers des tables d'un autre cluster (ou du même cluster).
+Copia datos de las tablas de un clúster en tablas de otro (o del mismo) clúster.
 
-Vous pouvez exécuter plusieurs `clickhouse-copier` instances sur différents serveurs pour effectuer le même travail. ZooKeeper est utilisé pour synchroniser les processus.
+Puede ejecutar varios `clickhouse-copier` instancias en diferentes servidores para realizar el mismo trabajo. ZooKeeper se utiliza para sincronizar los procesos.
 
-Après le démarrage de, `clickhouse-copier`:
+Después de comenzar, `clickhouse-copier`:
 
--   Se connecte à ZooKeeper et reçoit:
+-   Se conecta a ZooKeeper y recibe:
 
-    -   La copie de tâches.
-    -   L'état de la copie d'emplois.
+    -   Copia de trabajos.
+    -   El estado de los trabajos de copia.
 
--   Il effectue les travaux.
+-   Realiza los trabajos.
 
-    Chaque processus en cours choisit le “closest” eclat du cluster source et copie les données dans le cluster de destination, la refragmentation les données si nécessaire.
+    Cada proceso en ejecución elige el “closest” el fragmento del clúster de origen y copia los datos en el clúster de destino, reafirmando los datos si es necesario.
 
-`clickhouse-copier` suit les changements dans ZooKeeper et les applique à la volée.
+`clickhouse-copier` realiza un seguimiento de los cambios en ZooKeeper y los aplica sobre la marcha.
 
-Pour réduire le trafic réseau, nous vous recommandons de `clickhouse-copier` sur le même serveur où se trouvent les données source.
+Para reducir el tráfico de red, recomendamos ejecutar `clickhouse-copier` en el mismo servidor donde se encuentran los datos de origen.
 
-## Course clickhouse-copieur {#running-clickhouse-copier}
+## Ejecución de clickhouse-copiadora {#running-clickhouse-copier}
 
-L'utilitaire doit être exécuté manuellement:
+La utilidad debe ejecutarse manualmente:
 
 ``` bash
 $ clickhouse-copier copier --daemon --config zookeeper.xml --task-path /task/path --base-dir /path/to/dir
 ```
 
-Paramètre:
+Parámetros:
 
--   `daemon` — Starts `clickhouse-copier` en mode démon.
--   `config` — The path to the `zookeeper.xml` fichier avec les paramètres pour la connexion à la Gardienne.
--   `task-path` — The path to the ZooKeeper node. This node is used for syncing `clickhouse-copier` processus et stockage des tâches. Les tâches sont stockées dans `$task-path/description`.
+-   `daemon` — Starts `clickhouse-copier` en modo daemon.
+-   `config` — The path to the `zookeeper.xml` con los parámetros para la conexión a ZooKeeper.
+-   `task-path` — The path to the ZooKeeper node. This node is used for syncing `clickhouse-copier` procesos y tareas de almacenamiento. Las tareas se almacenan en `$task-path/description`.
 -   `task-file` — Optional path to file with task configuration for initial upload to ZooKeeper.
--   `task-upload-force` — Force upload `task-file` même si le nœud existe déjà.
--   `base-dir` — The path to logs and auxiliary files. When it starts, `clickhouse-copier` crée `clickhouse-copier_YYYYMMHHSS_<PID>` les sous-répertoires `$base-dir`. Si ce paramètre est omis, les répertoires sont créés dans le répertoire où `clickhouse-copier` a été lancé.
+-   `task-upload-force` — Force upload `task-file` incluso si el nodo ya existe.
+-   `base-dir` — The path to logs and auxiliary files. When it starts, `clickhouse-copier` crear `clickhouse-copier_YYYYMMHHSS_<PID>` subdirectorios en `$base-dir`. Si se omite este parámetro, los directorios se crean en el directorio donde `clickhouse-copier` se puso en marcha.
 
-## Format de zookeeper.XML {#format-of-zookeeper-xml}
+## Formato de zookeeper.XML {#format-of-zookeeper-xml}
 
 ``` xml
 <yandex>
@@ -59,7 +62,7 @@ Paramètre:
 </yandex>
 ```
 
-## Configuration des tâches de copie {#configuration-of-copying-tasks}
+## Configuración de tareas de copia {#configuration-of-copying-tasks}
 
 ``` xml
 <yandex>
@@ -168,6 +171,6 @@ Paramètre:
 </yandex>
 ```
 
-`clickhouse-copier` suit les changements dans `/task/path/description` et les applique à la volée. Par exemple, si vous modifiez la valeur de `max_workers`, le nombre de processus exécutant des tâches changera également.
+`clickhouse-copier` seguimiento de los cambios en `/task/path/description` y los aplica sobre la marcha. Por ejemplo, si cambia el valor de `max_workers`, el número de procesos que ejecutan tareas también cambiará.
 
-[Article Original](https://clickhouse.tech/docs/en/operations/utils/clickhouse-copier/) <!--hide-->
+[Artículo Original](https://clickhouse.tech/docs/en/operations/utils/clickhouse-copier/) <!--hide-->

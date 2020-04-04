@@ -1,46 +1,49 @@
 ---
-en_copy: true
+machine_translated: true
+machine_translated_rev: d734a8e46ddd7465886ba4133bff743c55190626
+toc_priority: 59
+toc_title: "\u062A\u0627\u062A\u0631-\u06A9\u067E\u06CC"
 ---
 
-# clickhouse-copier {#clickhouse-copier}
+# تاتر-کپی {#clickhouse-copier}
 
-Copies data from the tables in one cluster to tables in another (or the same) cluster.
+کپی داده ها از جداول در یک خوشه به جداول در یکی دیگر از (یا همان) خوشه.
 
-You can run multiple `clickhouse-copier` instances on different servers to perform the same job. ZooKeeper is used for syncing the processes.
+شما می توانید چند اجرا `clickhouse-copier` نمونه بر روی سرور های مختلف برای انجام همان کار. باغ وحش برای همگام سازی فرایندها استفاده می شود.
 
-After starting, `clickhouse-copier`:
+پس از شروع, `clickhouse-copier`:
 
--   Connects to ZooKeeper and receives:
+-   قابلیت اتصال به باغ وحش و دریافت:
 
-    -   Copying jobs.
-    -   The state of the copying jobs.
+    -   شغل کپی.
+    -   دولت از مشاغل کپی.
 
--   It performs the jobs.
+-   این کار را انجام می دهد.
 
-    Each running process chooses the “closest” shard of the source cluster and copies the data into the destination cluster, resharding the data if necessary.
+    هر فرایند در حال اجرا را انتخاب “closest” سفال از خوشه منبع و کپی داده ها را به خوشه مقصد, تغییر شکل داده ها در صورت لزوم.
 
-`clickhouse-copier` tracks the changes in ZooKeeper and applies them on the fly.
+`clickhouse-copier` تغییرات باغ وحش را دنبال می کند و در پرواز اعمال می شود.
 
-To reduce network traffic, we recommend running `clickhouse-copier` on the same server where the source data is located.
+برای کاهش ترافیک شبکه توصیه می کنیم در حال اجرا `clickhouse-copier` در همان سرور که داده های منبع واقع شده است.
 
-## Running clickhouse-copier {#running-clickhouse-copier}
+## در حال اجرا تاتر-کپی {#running-clickhouse-copier}
 
-The utility should be run manually:
+ابزار باید به صورت دستی اجرا شود:
 
 ``` bash
 $ clickhouse-copier copier --daemon --config zookeeper.xml --task-path /task/path --base-dir /path/to/dir
 ```
 
-Parameters:
+پارامترها:
 
--   `daemon` — Starts `clickhouse-copier` in daemon mode.
--   `config` — The path to the `zookeeper.xml` file with the parameters for the connection to ZooKeeper.
--   `task-path` — The path to the ZooKeeper node. This node is used for syncing `clickhouse-copier` processes and storing tasks. Tasks are stored in `$task-path/description`.
+-   `daemon` — Starts `clickhouse-copier` در حالت شبح.
+-   `config` — The path to the `zookeeper.xml` فایل با پارامترهای اتصال به باغ وحش.
+-   `task-path` — The path to the ZooKeeper node. This node is used for syncing `clickhouse-copier` پردازش و ذخیره سازی وظایف. وظایف در ذخیره می شود `$task-path/description`.
 -   `task-file` — Optional path to file with task configuration for initial upload to ZooKeeper.
--   `task-upload-force` — Force upload `task-file` even if node already exists.
--   `base-dir` — The path to logs and auxiliary files. When it starts, `clickhouse-copier` creates `clickhouse-copier_YYYYMMHHSS_<PID>` subdirectories in `$base-dir`. If this parameter is omitted, the directories are created in the directory where `clickhouse-copier` was launched.
+-   `task-upload-force` — Force upload `task-file` حتی اگر گره در حال حاضر وجود دارد.
+-   `base-dir` — The path to logs and auxiliary files. When it starts, `clickhouse-copier` ایجاد `clickhouse-copier_YYYYMMHHSS_<PID>` زیرشاخه در `$base-dir`. اگر این پارامتر حذف شده است, دایرکتوری ها در دایرکتوری که ایجاد `clickhouse-copier` راه اندازی شد.
 
-## Format of zookeeper.xml {#format-of-zookeeper-xml}
+## قالب باغ وحش.شمع {#format-of-zookeeper-xml}
 
 ``` xml
 <yandex>
@@ -59,7 +62,7 @@ Parameters:
 </yandex>
 ```
 
-## Configuration of copying tasks {#configuration-of-copying-tasks}
+## پیکربندی وظایف کپی کردن {#configuration-of-copying-tasks}
 
 ``` xml
 <yandex>
@@ -168,6 +171,6 @@ Parameters:
 </yandex>
 ```
 
-`clickhouse-copier` tracks the changes in `/task/path/description` and applies them on the fly. For instance, if you change the value of `max_workers`, the number of processes running tasks will also change.
+`clickhouse-copier` پیگیری تغییرات در `/task/path/description` و اونا رو تو پرواز بکار میبره برای مثال, اگر شما ارزش تغییر `max_workers` تعداد فرایندهای در حال اجرا وظایف نیز تغییر خواهد کرد.
 
-[Original article](https://clickhouse.tech/docs/en/operations/utils/clickhouse-copier/) <!--hide-->
+[مقاله اصلی](https://clickhouse.tech/docs/en/operations/utils/clickhouse-copier/) <!--hide-->
