@@ -1,49 +1,51 @@
 ---
-machine_translated: true
-machine_translated_rev: 72537a2d527c63c07aa5d2361a8829f3895cf2bd
-toc_priority: 59
-toc_title: "\u30AF\u30EA\u30C3\u30AF\u30CF\u30A6\u30B9-\u8907\u5199\u6A5F"
+sidebar_position: 59
+sidebar_label: clickhouse-copier
 ---
 
-# クリックハウス-複写機 {#clickhouse-copier}
+# clickhouse-copier 
 
-コピーデータからのテーブルを一つクラスターテーブルの他の同クラスター
+Copies data from the tables in one cluster to tables in another (or the same) cluster.
 
-複数実行できます `clickhouse-copier` インスタンスの異なるサーバーを行う仕事です。 ZooKeeperはプロセスの同期に使用されます。
+:::warning    
+To get a consistent copy, the data in the source tables and partitions should not change during the entire process.
+:::
 
-開始後, `clickhouse-copier`:
+You can run multiple `clickhouse-copier` instances on different servers to perform the same job. ZooKeeper is used for syncing the processes.
 
--   ZooKeeperに接続し、受信します:
+After starting, `clickhouse-copier`:
 
-    -   ジョブのコピー。
-    -   コピージョブの状態。
+-   Connects to ZooKeeper and receives:
 
--   これは、ジョブを実行します。
+    -   Copying jobs.
+    -   The state of the copying jobs.
 
-    各実行中のプロセスは、 “closest” ザ-シャーのソースクラスタのデータ転送先のクラスター resharding場合はそのデータが必要です。
+-   It performs the jobs.
 
-`clickhouse-copier` ZooKeeperの変更を追跡し、その場でそれらを適用します。
+    Each running process chooses the “closest” shard of the source cluster and copies the data into the destination cluster, resharding the data if necessary.
 
-ネットワークトラフィ `clickhouse-copier` ソースデータが配置されている同じサーバー上。
+`clickhouse-copier` tracks the changes in ZooKeeper and applies them on the fly.
 
-## クリックハウスコピー機の実行 {#running-clickhouse-copier}
+To reduce network traffic, we recommend running `clickhouse-copier` on the same server where the source data is located.
 
-このユーテ:
+## Running Clickhouse-copier {#running-clickhouse-copier}
+
+The utility should be run manually:
 
 ``` bash
-$ clickhouse-copier copier --daemon --config zookeeper.xml --task-path /task/path --base-dir /path/to/dir
+$ clickhouse-copier --daemon --config zookeeper.xml --task-path /task/path --base-dir /path/to/dir
 ```
 
-パラメータ:
+Parameters:
 
--   `daemon` — Starts `clickhouse-copier` デーモンモードで。
--   `config` — The path to the `zookeeper.xml` ZooKeeperへの接続のためのパラメータを持つファイル。
--   `task-path` — The path to the ZooKeeper node. This node is used for syncing `clickhouse-copier` プロセスとタスクの保存。 タスクは `$task-path/description`.
+-   `daemon` — Starts `clickhouse-copier` in daemon mode.
+-   `config` — The path to the `zookeeper.xml` file with the parameters for the connection to ZooKeeper.
+-   `task-path` — The path to the ZooKeeper node. This node is used for syncing `clickhouse-copier` processes and storing tasks. Tasks are stored in `$task-path/description`.
 -   `task-file` — Optional path to file with task configuration for initial upload to ZooKeeper.
--   `task-upload-force` — Force upload `task-file` ノードが既に存在していても。
--   `base-dir` — The path to logs and auxiliary files. When it starts, `clickhouse-copier` 作成 `clickhouse-copier_YYYYMMHHSS_<PID>` サブディレクトリ `$base-dir`. このパラメーターを省略すると、ディレクトリは次の場所に作成されます `clickhouse-copier` 発売された。
+-   `task-upload-force` — Force upload `task-file` even if node already exists.
+-   `base-dir` — The path to logs and auxiliary files. When it starts, `clickhouse-copier` creates `clickhouse-copier_YYYYMMHHSS_<PID>` subdirectories in `$base-dir`. If this parameter is omitted, the directories are created in the directory where `clickhouse-copier` was launched.
 
-## 飼育係の形式。xml {#format-of-zookeeper-xml}
+## Format of Zookeeper.xml {#format-of-zookeeper-xml}
 
 ``` xml
 <clickhouse>
@@ -62,18 +64,28 @@ $ clickhouse-copier copier --daemon --config zookeeper.xml --task-path /task/pat
 </clickhouse>
 ```
 
-## コピータスクの構成 {#configuration-of-copying-tasks}
+## Configuration of Copying Tasks {#configuration-of-copying-tasks}
 
 ``` xml
 <clickhouse>
     <!-- Configuration of clusters as in an ordinary server config -->
     <remote_servers>
         <source_cluster>
+            <!--
+                source cluster & destination clusters accept exactly the same
+                parameters as parameters for the usual Distributed table
+                see https://clickhouse.com/docs/en/engines/table-engines/special/distributed/
+            -->
             <shard>
                 <internal_replication>false</internal_replication>
                     <replica>
                         <host>127.0.0.1</host>
                         <port>9000</port>
+                        <!--
+                        <user>default</user>
+                        <password>default</password>
+                        <secure>1</secure>
+                        -->
                     </replica>
             </shard>
             ...
@@ -171,6 +183,6 @@ $ clickhouse-copier copier --daemon --config zookeeper.xml --task-path /task/pat
 </clickhouse>
 ```
 
-`clickhouse-copier` の変更を追跡します `/task/path/description` そしてその場でそれらを適用します。 たとえば、次の値を変更すると `max_workers`、タスクを実行しているプロセスの数も変更されます。
+`clickhouse-copier` tracks the changes in `/task/path/description` and applies them on the fly. For instance, if you change the value of `max_workers`, the number of processes running tasks will also change.
 
-[元の記事](https://clickhouse.com/docs/en/operations/utils/clickhouse-copier/) <!--hide-->
+[Original article](https://clickhouse.com/docs/en/operations/utils/clickhouse-copier/) <!--hide-->
