@@ -1,6 +1,7 @@
-# clickhouse-copier
+> [!NOTE]
+> This tool is no longer supported, but you can use the latest available version as is.
 
-This tool is no longer supported, but you can use the latest available version as is.
+# clickhouse-copier
 
 Copies data from the tables in one cluster to tables in another (or the same) cluster.
 
