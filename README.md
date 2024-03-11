@@ -23,7 +23,7 @@ After starting, `clickhouse-copier`:
 
 To reduce network traffic, we recommend running `clickhouse-copier` on the same server where the source data is located.
 
-## Running Clickhouse-copier {#running-clickhouse-copier}
+## Running Clickhouse-copier
 
 The utility should be run manually:
 
@@ -40,7 +40,7 @@ Parameters:
 - `task-upload-force` — Force upload `task-file` even if node already exists. Default is false.
 - `base-dir` — The path to logs and auxiliary files. When it starts, `clickhouse-copier` creates `clickhouse-copier_YYYYMMHHSS_<PID>` subdirectories in `$base-dir`. If this parameter is omitted, the directories are created in the directory where `clickhouse-copier` was launched.
 
-## Format of keeper.xml {#format-of-zookeeper-xml}
+## Format of keeper.xml
 
 ``` xml
 <clickhouse>
@@ -59,7 +59,7 @@ Parameters:
 </clickhouse>
 ```
 
-## Configuration of Copying Tasks {#configuration-of-copying-tasks}
+## Configuration of Copying Tasks
 
 ``` xml
 <clickhouse>
