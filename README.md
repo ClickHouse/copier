@@ -1,9 +1,3 @@
----
-slug: /en/operations/utilities/clickhouse-copier
-sidebar_position: 59
-sidebar_label: clickhouse-copier
----
-
 # clickhouse-copier
 
 Copies data from the tables in one cluster to tables in another (or the same) cluster.
