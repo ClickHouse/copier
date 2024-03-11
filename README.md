@@ -1,10 +1,10 @@
 # clickhouse-copier
 
+This tool is no longer supported, but you can use the latest available version as is.
+
 Copies data from the tables in one cluster to tables in another (or the same) cluster.
 
-:::note
 To get a consistent copy, the data in the source tables and partitions should not change during the entire process.
-:::
 
 You can run multiple `clickhouse-copier` instances on different servers to perform the same job. ClickHouse Keeper, or ZooKeeper, is used for syncing the processes.
 
@@ -22,6 +22,10 @@ After starting, `clickhouse-copier`:
 `clickhouse-copier` tracks the changes in ClickHouse Keeper and applies them on the fly.
 
 To reduce network traffic, we recommend running `clickhouse-copier` on the same server where the source data is located.
+
+## Download and Install
+
+Download the binaries from the [final release](releases/tag/final).
 
 ## Running Clickhouse-copier
 
@@ -179,3 +183,9 @@ Parameters:
 ```
 
 `clickhouse-copier` tracks the changes in `/task/path/description` and applies them on the fly. For instance, if you change the value of `max_workers`, the number of processes running tasks will also change.
+
+## Build from sources
+
+You don't have to. Download the binaries from the [final release](releases/tag/final).
+
+But if you want, use the following repository snapshot https://github.com/ClickHouse/ClickHouse/tree/1179a70c21eeca88410a012a73a49180cc5e5e2e and proceed with the normal ClickHouse build. The built `clickhouse` binary will contain the copier tool.
