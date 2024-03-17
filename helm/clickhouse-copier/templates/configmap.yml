@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "clickhouse-copier.fullname" . }}-copier-config
+  labels:
+    {{- include "clickhouse-copier.labels" . | nindent 4 }}
+data:
+    task01.xml: |
+        <clickhouse>
+            <logger>
+                <console>true</console>
+                <log remove="remove"/>
+                <errorlog remove="remove"/>
+                <level>trace</level>
+            </logger>
+            <remote_servers>
+                <source_cluster>
+                        {{- $user_select := .Values.user_pull }}
+                        {{- $password_user_select := .Values.password_user_pull }}
+                        {{- range $replicas_pull := .Values.host_replica_pull }}
+                    <shard>
+                        <replica>
+                            <host>{{ $replicas_pull }}</host>
+                            <port>9000</port>
+                            <user>{{ $user_select }}</user>
+                            <password>{{ $password_user_select }}</password>
+                        </replica>
+                    </shard>
+                        {{- end }}
+                </source_cluster>
+                <target_cluster>
+                    <!-- <secret></secret> -->
+                        {{- $user_insert := .Values.user_push }}
+                        {{- $password_user_insert := .Values.password_user_push }}
+                        {{- range $replicas_push := .Values.host_replica_push }}
+                    <shard>
+                        <replica>
+                            <host>{{ $replicas_push }}</host>
+                            <port>9000</port>
+                            <user>{{ $user_insert }}</user>
+                            <password>{{ $password_user_insert }}</password>
+                        </replica>
+                    </shard>
+                        {{- end }}
+                </target_cluster>
+            </remote_servers>
+            <max_workers>100</max_workers>
+            <settings_pull>
+                <readonly>1</readonly>
+            </settings_pull>
+            <settings_push>
+                <readonly>0</readonly>
+            </settings_push>
+            <settings>
+                <connect_timeout>6</connect_timeout>
+                <distributed_foreground_insert>1</distributed_foreground_insert>
+                <allow_suspicious_codecs>1</allow_suspicious_codecs>
+            </settings>
+            <tables>
+                <table_test>
+                    <cluster_pull>source_cluster</cluster_pull>
+                    <database_pull>{{ .Values.database_pull }}</database_pull>
+                    <table_pull>{{ .Values.table_pull }}</table_pull>
+                    <cluster_push>target_cluster</cluster_push>
+                    <database_push>{{ .Values.database_push }}</database_push>
+                    <table_push>{{ .Values.table_push }}</table_push>
+                    <engine>{{ .Values.engine_table | nindent 24 }}</engine>
+                    <sharding_key>{{ .Values.sharding_key }}</sharding_key>
+                </table_test>
+            </tables>
+        </clickhouse>
+    zookeeper.xml: |
+        <clickhouse>
+            <logger>
+                <console>true</console>
+                <log remove="remove"/>
+                <errorlog remove="remove"/>
+                <level>trace</level>
+            </logger>
+            <zookeeper>
+                <node>
+                    <host>{{ .Values.zookeeper_host }}</host>
+                    <port>2181</port>
+                </node>
+            </zookeeper>
+        </clickhouse>
