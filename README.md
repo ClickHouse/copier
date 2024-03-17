@@ -190,3 +190,7 @@ Parameters:
 You don't have to. Download the binaries from the [final release](releases/tag/final).
 
 But if you want, use the following repository snapshot https://github.com/ClickHouse/ClickHouse/tree/1179a70c21eeca88410a012a73a49180cc5e5e2e and proceed with the normal ClickHouse build. The built `clickhouse` binary will contain the copier tool.
+
+## Running clickhouse-copier in kubernetes
+
+[README](./helm/clickhouse-copier/README.md)

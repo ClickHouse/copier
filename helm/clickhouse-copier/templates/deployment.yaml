@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "clickhouse-copier.fullname" . }}
+  labels:
+    {{- include "clickhouse-copier.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "clickhouse-copier.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "clickhouse-copier.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "clickhouse-copier.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # ports:
+          #   - name: http
+          #     containerPort: {{ .Values.service.port }}
+          #     protocol: TCP
+          # livenessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          # readinessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          command:
+            - clickhouse-copier
+            - --task-upload-force=1
+            - --config-file=$(CH_COPIER_CONFIG)
+            - --task-path=$(CH_COPIER_TASKPATH)
+            - --task-file=$(CH_COPIER_TASKFILE)
+            - --base-dir=$(CH_COPIER_BASEDIR)
+          env:
+            - name: CH_COPIER_CONFIG
+              value: "/var/lib/clickhouse/tmp/zookeeper.xml"
+            - name: CH_COPIER_TASKPATH
+              value: "/clickhouse/copier/tasks/{{ .Values.path_copier }}"
+            - name: CH_COPIER_TASKFILE
+              value: "/var/lib/clickhouse/tmp/task01.xml"
+            - name: CH_COPIER_BASEDIR
+              value: "/var/lib/clickhouse/tmp"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: {{ include "clickhouse-copier.fullname" . }}-copier-config
+              mountPath: /var/lib/clickhouse/tmp/zookeeper.xml
+              subPath: zookeeper.xml
+            - name: {{ include "clickhouse-copier.fullname" . }}-copier-config
+              mountPath: /var/lib/clickhouse/tmp/task01.xml
+              subPath: task01.xml
+      volumes:
+        - name: {{ include "clickhouse-copier.fullname" . }}-copier-config
+          configMap:
+            name: {{ include "clickhouse-copier.fullname" . }}-copier-config
+            items:
+              - key: zookeeper.xml
+                path: zookeeper.xml
+              - key: task01.xml
+                path: task01.xml
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
